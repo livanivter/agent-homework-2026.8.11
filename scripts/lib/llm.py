@@ -3,14 +3,38 @@
 
 只用标准库 urllib 发 HTTP 请求,零第三方依赖。
 配置优先级:环境变量 > 项目根目录 .env 文件。
-  LLM_PROVIDER   anthropic(默认)| openai
-  ANTHROPIC_API_KEY / OPENAI_API_KEY
-  LLM_MODEL      可选,默认 anthropic: claude-sonnet-5 ; openai: gpt-4o-mini
+
+支持的供应商(LLM_PROVIDER):
+  anthropic  默认模型 claude-sonnet-5   key: ANTHROPIC_API_KEY
+  openai     默认模型 gpt-4o-mini        key: OPENAI_API_KEY
+  deepseek   OpenAI 兼容协议            key: DEEPSEEK_API_KEY
+可选的 LLM_MODEL 覆盖默认模型。
 """
 import json
 import os
 import urllib.error
 import urllib.request
+
+PROVIDERS = {
+    "anthropic": {
+        "api_type": "anthropic",
+        "base_url": "https://api.anthropic.com",
+        "default_model": "claude-sonnet-5",
+        "key_env": "ANTHROPIC_API_KEY",
+    },
+    "openai": {
+        "api_type": "openai",
+        "base_url": "https://api.openai.com",
+        "default_model": "gpt-4o-mini",
+        "key_env": "OPENAI_API_KEY",
+    },
+    "deepseek": {
+        "api_type": "openai",
+        "base_url": "https://api.deepseek.com",
+        "default_model": "deepseek-chat",
+        "key_env": "DEEPSEEK_API_KEY",
+    },
+}
 
 
 def _load_dotenv():
@@ -31,30 +55,30 @@ def _load_dotenv():
 _load_dotenv()
 
 
+def _provider():
+    name = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    if name not in PROVIDERS:
+        raise RuntimeError("未知 LLM_PROVIDER=%s,可选:%s" % (name, ",".join(PROVIDERS)))
+    return PROVIDERS[name]
+
+
 def available():
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
-    if provider == "anthropic":
-        return bool(os.environ.get("ANTHROPIC_API_KEY"))
-    if provider == "openai":
-        return bool(os.environ.get("OPENAI_API_KEY"))
-    return False
+    try:
+        return bool(os.environ.get(_provider()["key_env"]))
+    except RuntimeError:
+        return False
 
 
 def default_model():
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
-    return os.environ.get("LLM_MODEL") or (
-        "claude-sonnet-5" if provider == "anthropic" else "gpt-4o-mini"
-    )
+    return os.environ.get("LLM_MODEL") or _provider()["default_model"]
 
 
 def chat(system, user, model=None, max_tokens=4000, temperature=0.2):
     """一次对话,返回文本。失败抛 RuntimeError(带 HTTP 状态与原因)。"""
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
-    if provider == "anthropic":
+    provider = _provider()
+    if provider["api_type"] == "anthropic":
         return _chat_anthropic(system, user, model, max_tokens, temperature)
-    if provider == "openai":
-        return _chat_openai(system, user, model, max_tokens, temperature)
-    raise RuntimeError("未知 LLM_PROVIDER=%s" % provider)
+    return _chat_openai(provider, system, user, model, max_tokens, temperature)
 
 
 def _post(url, headers, payload, timeout=180):
@@ -71,9 +95,10 @@ def _post(url, headers, payload, timeout=180):
 
 
 def _chat_anthropic(system, user, model, max_tokens, temperature):
-    key = os.environ.get("ANTHROPIC_API_KEY")
+    p = PROVIDERS["anthropic"]
+    key = os.environ.get(p["key_env"])
     if not key:
-        raise RuntimeError("缺少 ANTHROPIC_API_KEY")
+        raise RuntimeError("缺少 %s" % p["key_env"])
     payload = {
         "model": model or default_model(),
         "max_tokens": max_tokens,
@@ -82,7 +107,7 @@ def _chat_anthropic(system, user, model, max_tokens, temperature):
         "messages": [{"role": "user", "content": user}],
     }
     data = _post(
-        "https://api.anthropic.com/v1/messages",
+        p["base_url"] + "/v1/messages",
         {
             "content-type": "application/json",
             "x-api-key": key,
@@ -93,10 +118,10 @@ def _chat_anthropic(system, user, model, max_tokens, temperature):
     return data["content"][0]["text"]
 
 
-def _chat_openai(system, user, model, max_tokens, temperature):
-    key = os.environ.get("OPENAI_API_KEY")
+def _chat_openai(provider, system, user, model, max_tokens, temperature):
+    key = os.environ.get(provider["key_env"])
     if not key:
-        raise RuntimeError("缺少 OPENAI_API_KEY")
+        raise RuntimeError("缺少 %s" % provider["key_env"])
     payload = {
         "model": model or default_model(),
         "max_tokens": max_tokens,
@@ -107,7 +132,7 @@ def _chat_openai(system, user, model, max_tokens, temperature):
         ],
     }
     data = _post(
-        "https://api.openai.com/v1/chat/completions",
+        provider["base_url"] + "/v1/chat/completions",
         {"content-type": "application/json", "authorization": "Bearer %s" % key},
         payload,
     )
