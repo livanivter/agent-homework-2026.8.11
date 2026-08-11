@@ -15,7 +15,8 @@ description: 学术论文阅读助手。当用户请求解析论文核心内容(
 
 - Python 3.9+,无第三方依赖;PDF 文本提取走 pdftotext CLI(pymupdf/pypdf 存在时优先)。
 - 默认**素材模式**不需要 API key。
-- 若用户配置了 `ANTHROPIC_API_KEY` 或 `OPENAI_API_KEY`,可加 `--llm` 让脚本独立产出最终结果;无 key 时走素材模式,由本 harness 完成推理。
+- 若用户配置了 `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `DEEPSEEK_API_KEY`,可加 `--llm` 让脚本独立产出最终结果;无 key 时走素材模式,由本 harness 完成推理。
+- 另有自包含 ReAct Agent(`scripts/agent.py`),走 DeepSeek function calling,不依赖本 harness;用户提到"用 agent / 自动跑 / 循环"时指引其使用。
 
 ## 记忆(读写时机)
 

@@ -1,8 +1,10 @@
 # Paper Reader —— 学术论文阅读助手
 
 垂直领域 Agent 产品:面向研究生科研场景的论文阅读与分析。
-**Agent = LLM(Claude Code harness) + Tools(3 个脚本) + Memory(JSON 文件)。**
-打包为 **Claude Code Skill**,呼应《Agent 专题》课程的 Skills/MCP 专题。
+**Agent = LLM + Tools + Memory**,提供两条运行路径:
+- **自包含 ReAct Agent(`agent.py`)**:自己的循环 + DeepSeek function calling,不依赖 Claude Code
+- **Claude Code Skill**:harness 提供循环,三个脚本作为工具
+呼应《Agent 专题》课程的 Skills/MCP 专题。
 
 分析链:`写了什么(事实) → 和别人比有什么不同(关系) → 为什么要这么写(意图)`。
 
@@ -22,14 +24,18 @@ paper-reader-skill/
 ├── references/
 │   ├── field_schemas.md       # 字段定义与输出规范(单源真相)
 │   └── prompts.md             # 提示词模板(--llm 模式与 harness 共用)
-└── memory/
-    ├── user_profile.json      # 用户偏好(agent/Skill 维护)
-    └── reading_history.json   # 阅读记录(脚本自动追加,gitignore)
+├── memory/
+│   ├── user_profile.json      # 用户偏好(agent/Skill 维护)
+│   └── reading_history.json   # 阅读记录(脚本自动追加,gitignore)
+├── reports/
+│   └── 调试过程报告.md        # 作业报告初稿
+├── .env                       # API key(本机,gitignore)
+└── .env.example               # key 配置模板(提交)
 ```
 
 ## 自包含 Agent(`agent.py`)
 
-自己写的 ReAct 循环(约 100 行,呼应课件 Agent Loop 伪代码),**不依赖 Claude Code**。
+自己写的 ReAct 循环(核心约 15 行,整脚本 228 行,呼应课件 Agent Loop 伪代码),**不依赖 Claude Code**。
 Agent = DeepSeek(function calling)+ 5 个工具 + 记忆。记忆以工具形式参与决策:
 
 ```bash
@@ -44,7 +50,7 @@ python scripts/agent.py                                                     # �
 
 - Python 3.9+,无第三方依赖
 - PDF 文本提取:pdftotext CLI(有 pymupdf/pypdf 时优先)
-- 默认素材模式**无需 API key**;`--llm` 独立模式需 API key
+- 默认素材模式**无需 API key**;`--llm` 独立模式与 `agent.py` 需 API key
 - API key 配置:**复制 `.env.example` 为 `.env`**,按需填 key;环境变量优先于 `.env` 文件
   - Anthropic: `LLM_PROVIDER=anthropic` + `ANTHROPIC_API_KEY=你的key`
   - OpenAI: `LLM_PROVIDER=openai` + `OPENAI_API_KEY=你的key`
