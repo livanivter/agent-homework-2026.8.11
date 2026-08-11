@@ -31,8 +31,9 @@ PROVIDERS = {
     "deepseek": {
         "api_type": "openai",
         "base_url": "https://api.deepseek.com",
-        "default_model": "deepseek-chat",
+        "default_model": "deepseek-v4-flash",
         "key_env": "DEEPSEEK_API_KEY",
+        "base_url_env": "DEEPSEEK_BASE_URL",
     },
 }
 
@@ -81,6 +82,14 @@ def chat(system, user, model=None, max_tokens=4000, temperature=0.2):
     return _chat_openai(provider, system, user, model, max_tokens, temperature)
 
 
+def _base_url(provider):
+    """支持用 <PROVIDER>_BASE_URL 环境变量覆盖默认地址(网关/代理场景)。"""
+    env = provider.get("base_url_env")
+    if env and os.environ.get(env):
+        return os.environ[env].rstrip("/")
+    return provider["base_url"]
+
+
 def _post(url, headers, payload, timeout=180):
     req = urllib.request.Request(
         url, data=json.dumps(payload).encode("utf-8"),
@@ -107,7 +116,7 @@ def _chat_anthropic(system, user, model, max_tokens, temperature):
         "messages": [{"role": "user", "content": user}],
     }
     data = _post(
-        p["base_url"] + "/v1/messages",
+        _base_url(p) + "/v1/messages",
         {
             "content-type": "application/json",
             "x-api-key": key,
@@ -132,7 +141,7 @@ def _chat_openai(provider, system, user, model, max_tokens, temperature):
         ],
     }
     data = _post(
-        provider["base_url"] + "/v1/chat/completions",
+        _base_url(provider) + "/v1/chat/completions",
         {"content-type": "application/json", "authorization": "Bearer %s" % key},
         payload,
     )

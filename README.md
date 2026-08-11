@@ -34,7 +34,7 @@ paper-reader-skill/
 - API key 配置:**复制 `.env.example` 为 `.env`**,按需填 key;环境变量优先于 `.env` 文件
   - Anthropic: `LLM_PROVIDER=anthropic` + `ANTHROPIC_API_KEY=你的key`
   - OpenAI: `LLM_PROVIDER=openai` + `OPENAI_API_KEY=你的key`
-  - DeepSeek(OpenAI 兼容):`LLM_PROVIDER=deepseek` + `DEEPSEEK_API_KEY=你的key`
+  - DeepSeek(OpenAI 兼容):`LLM_PROVIDER=deepseek` + `DEEPSEEK_API_KEY=你的key`(默认模型 `deepseek-v4-flash`;走网关可设 `DEEPSEEK_BASE_URL`)
 
 ## 用法
 
