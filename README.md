@@ -30,7 +30,9 @@ paper-reader-skill/
 
 - Python 3.9+,无第三方依赖
 - PDF 文本提取:pdftotext CLI(有 pymupdf/pypdf 时优先)
-- 默认素材模式**无需 API key**;`--llm` 独立模式需 `ANTHROPIC_API_KEY` 或 `OPENAI_API_KEY`
+- 默认素材模式**无需 API key**;`--llm` 独立模式需 API key
+- API key 配置:**复制 `.env.example` 为 `.env`**,在 `.env` 第 2 行填 `ANTHROPIC_API_KEY=你的key`
+  (或改 `LLM_PROVIDER=openai` + 填 `OPENAI_API_KEY`);环境变量优先于 `.env` 文件
 
 ## 用法
 

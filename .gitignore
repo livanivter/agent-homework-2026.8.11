@@ -3,3 +3,4 @@ __pycache__/
 cache/
 test_papers/
 memory/reading_history.json
+.env

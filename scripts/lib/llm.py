@@ -2,7 +2,7 @@
 """可选 LLM 客户端(仅供 --llm 独立模式)。
 
 只用标准库 urllib 发 HTTP 请求,零第三方依赖。
-配置:
+配置优先级:环境变量 > 项目根目录 .env 文件。
   LLM_PROVIDER   anthropic(默认)| openai
   ANTHROPIC_API_KEY / OPENAI_API_KEY
   LLM_MODEL      可选,默认 anthropic: claude-sonnet-5 ; openai: gpt-4o-mini
@@ -11,6 +11,24 @@ import json
 import os
 import urllib.error
 import urllib.request
+
+
+def _load_dotenv():
+    """从 skill 根目录的 .env 读取配置(环境变量已设则不动)。"""
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    path = os.path.join(root, ".env")
+    if not os.path.exists(path):
+        return
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+
+_load_dotenv()
 
 
 def available():
