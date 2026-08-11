@@ -12,19 +12,33 @@
 paper-reader-skill/
 ├── SKILL.md                   # 技能定义:触发条件 / 工具调用 / 工作流 / 记忆维护
 ├── scripts/
+│   ├── agent.py               # ★ 自包含 ReAct Agent 循环(DeepSeek function calling,不依赖 Claude Code)
 │   ├── parse_paper_core.py    # 工具① 解析核心内容(七字段卡片 + 五层方法抽取)
 │   ├── compare_papers.py      # 工具② N篇分层对比(2~5篇,同领域/跨领域)
 │   ├── analyze_narrative.py   # 工具③ 叙事剖析(8维度 + overclaim检测)
 │   └── lib/
 │       ├── paper_utils.py     # 共用底层:文本提取/section定位/硬统计/缓存/记忆
-│       └── llm.py             # 可选 LLM 客户端(urllib,零依赖)
+│       └── llm.py             # 可选 LLM 客户端 + function calling(urllib,零依赖)
 ├── references/
 │   ├── field_schemas.md       # 字段定义与输出规范(单源真相)
 │   └── prompts.md             # 提示词模板(--llm 模式与 harness 共用)
 └── memory/
-    ├── user_profile.json      # 用户偏好(Claude 维护)
+    ├── user_profile.json      # 用户偏好(agent/Skill 维护)
     └── reading_history.json   # 阅读记录(脚本自动追加,gitignore)
 ```
+
+## 自包含 Agent(`agent.py`)
+
+自己写的 ReAct 循环(约 100 行,呼应课件 Agent Loop 伪代码),**不依赖 Claude Code**。
+Agent = DeepSeek(function calling)+ 5 个工具 + 记忆。记忆以工具形式参与决策:
+
+```bash
+python scripts/agent.py "对比 FedMD 和 FedProto,把 3 条关键差异记进记忆"   # 单任务
+python scripts/agent.py                                                     # 交互式对话
+```
+
+5 个注册工具:`parse_paper` / `compare_papers` / `analyze_narrative` / `read_memory` / `update_profile`。
+演示闭环:"对比→记记忆"→ 下次问"我上次对比了什么"→ agent 调 `read_memory` 读回。
 
 ## 环境要求
 

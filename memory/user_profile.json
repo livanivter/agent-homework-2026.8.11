@@ -1,6 +1,11 @@
 {
-  "user_notes": "用户偏好记录由 Claude Code 按 SKILL.md 维护;每次任务前读取、任务后更新。",
-  "preferred_domains": [],
+  "user_notes": "用户偏好记录由 Claude Code 按 SKILL.md 维护;每次任务前读取、任务后更新。\n用户要求记录 FedMD(2019) vs FedProto(2022) 的三条关键差异:(1) 知识交换媒介:FedMD 用公共数据集上的类别分数/soft logits(知识蒸馏),FedProto 用类原型向量(特征均值);(2) 公共数据集依赖与通信成本:FedMD 必须依赖公共数据集 D0 作为通信桥梁、每轮传类别分数、成本高;FedProto 不依赖公共数据集、只传原型向量(如 MNIST 每类 50 维 vs 模型 21500 参数)、通信成本低;(3) 理论支撑与异构覆盖:FedMD 无收敛性分析、仅覆盖模型架构异构、假设共享标签空间;FedProto 提供非凸目标下收敛性理论分析,同时支持统计异构(类别空间/数据量)与模型异构。用户偏好简短(3条)的对比结论输出。",
+  "preferred_domains": [
+    "联邦学习",
+    "异构联邦学习",
+    "知识蒸馏",
+    "原型学习"
+  ],
   "preferred_conferences": [],
   "summary_depth": "full",
   "compare_max_papers": 5,

@@ -82,6 +82,51 @@ def chat(system, user, model=None, max_tokens=4000, temperature=0.2):
     return _chat_openai(provider, system, user, model, max_tokens, temperature)
 
 
+def chat_tools(messages, tools, model=None, max_tokens=6000, temperature=0.2):
+    """OpenAI 兼容 function calling(deepseek/openai)。
+
+    返回 (content, tool_calls):
+      content:    str 或 None(本轮文本回复)
+      tool_calls: [{id, name, arguments(dict)}] 或 None
+    """
+    provider = _provider()
+    if provider["api_type"] != "openai":
+        raise RuntimeError("function calling 目前仅支持 OpenAI 兼容协议(deepseek/openai)")
+    key = os.environ.get(provider["key_env"])
+    if not key:
+        raise RuntimeError("缺少 %s" % provider["key_env"])
+    payload = {
+        "model": model or default_model(),
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        "messages": messages,
+        "tools": tools,
+    }
+    data = _post(
+        _base_url(provider) + "/v1/chat/completions",
+        {"content-type": "application/json", "authorization": "Bearer %s" % key},
+        payload,
+    )
+    msg = data["choices"][0]["message"]
+    tcs = []
+    for c in msg.get("tool_calls") or []:
+        tcs.append({
+            "id": c["id"],
+            "name": c["function"]["name"],
+            "arguments": _safe_args(c["function"].get("arguments", "{}")),
+        })
+    return msg.get("content"), (tcs or None)
+
+
+def _safe_args(s):
+    """把函数调用参数 JSON 字符串解析成 dict,解析失败返回 {}。"""
+    try:
+        d = json.loads(s or "{}")
+        return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
 def _base_url(provider):
     """支持用 <PROVIDER>_BASE_URL 环境变量覆盖默认地址(网关/代理场景)。"""
     env = provider.get("base_url_env")

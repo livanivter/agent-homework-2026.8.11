@@ -349,3 +349,28 @@ def load_user_profile():
     merged = dict(defaults)
     merged.update(p or {})
     return merged
+
+
+def save_user_profile(profile):
+    save_json(os.path.join(memory_dir(), "user_profile.json"), profile)
+
+
+def update_user_profile(**changes):
+    """合并写入用户偏好(None/""/[] 的改动忽略),返回更新后的 profile。"""
+    p = load_user_profile()
+    if "notes" in changes:  # 工具层用 notes,存到 schema 的 user_notes
+        changes["user_notes"] = changes.pop("notes")
+    for k, v in changes.items():
+        if v not in (None, "", []):
+            p[k] = v
+    save_user_profile(p)
+    return p
+
+
+def read_memory_summary(limit=20):
+    """agent 的 read_memory 工具:返回用户偏好 + 最近阅读记录。"""
+    history = load_json(os.path.join(memory_dir(), "reading_history.json"), [])
+    return {
+        "user_profile": load_user_profile(),
+        "reading_history": history[-limit:],
+    }
