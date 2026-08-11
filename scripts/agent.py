@@ -149,7 +149,7 @@ def run_agent(task, max_steps=8):
             return (content or "").strip() or "(空回复)"
         calls = ", ".join("%s(%s)" % (c["name"], json.dumps(c["arguments"], ensure_ascii=False))
                           for c in tool_calls)
-        print("  [step %d] agent 决策调用: %s" % (step, calls))
+        print("\n  ⟳ [step %d] 调用工具: %s" % (step, calls))
         messages.append({
             "role": "assistant", "content": content or "",
             "tool_calls": [
@@ -169,24 +169,34 @@ def run_agent(task, max_steps=8):
 
 
 def repl(max_steps):
-    print("Paper Reader Agent(DeepSeek)。输入任务,Ctrl+C / 输入 exit 退出。")
+    print()
+    print("=" * 58)
+    print("  Paper Reader Agent (DeepSeek)")
+    print("  自包含 ReAct 循环 | 5 个工具 | JSON 记忆")
+    print("=" * 58)
+    print("  输入任务开始对话;输入 exit 或按 Ctrl+C 退出。")
+    print()
     while True:
         try:
-            task = input("\n> ").strip()
+            task = input("> ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\n再见")
+            print("\n再见 👋")
             break
         if not task:
             continue
         if task.lower() in ("exit", "quit"):
+            print("再见 👋")
             break
         try:
-            print(run_agent(task, max_steps))
+            answer = run_agent(task, max_steps)
+            print("\n" + "─" * 58)
+            print(answer)
+            print("─" * 58)
         except KeyboardInterrupt:
-            print("\n(中断)")
+            print("\n(已中断)")
             break
         except Exception as e:
-            print("错误: %s" % e)
+            print("\n错误: %s" % e)
 
 
 def main(argv=None):
@@ -202,7 +212,10 @@ def main(argv=None):
         return 1
     try:
         if args.task:
-            print(run_agent(args.task, args.max_steps))
+            answer = run_agent(args.task, args.max_steps)
+            print("\n" + "─" * 58)
+            print(answer)
+            print("─" * 58)
         else:
             repl(args.max_steps)
     except Exception as e:
