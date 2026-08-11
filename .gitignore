@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+cache/
+test_papers/
+memory/reading_history.json

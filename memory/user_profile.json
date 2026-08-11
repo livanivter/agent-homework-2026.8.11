@@ -1,0 +1,8 @@
+{
+  "user_notes": "用户偏好记录由 Claude Code 按 SKILL.md 维护;每次任务前读取、任务后更新。",
+  "preferred_domains": [],
+  "preferred_conferences": [],
+  "summary_depth": "full",
+  "compare_max_papers": 5,
+  "output_language": "auto"
+}
