@@ -28,7 +28,8 @@ paper-reader-skill/
 │   ├── user_profile.json      # 用户偏好(agent/Skill 维护)
 │   └── reading_history.json   # 阅读记录(脚本自动追加,gitignore)
 ├── reports/
-│   └── 调试过程报告.md        # 作业报告初稿
+│   ├── 调试过程报告.md         # 作业报告初稿
+│   └── 调试过程报告.pdf        # 作业报告
 ├── .env                       # API key(本机,gitignore)
 └── .env.example               # key 配置模板(提交)
 ```
